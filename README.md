@@ -35,3 +35,5 @@ This project shows how to:
 ⸻
 
 📂 Project Structure
+
+<img width="933" height="292" alt="Project Structure" src="https://github.com/user-attachments/assets/83f3fb5a-cc51-400b-bdae-e0d28ef0969c" />
