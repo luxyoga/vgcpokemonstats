@@ -36,11 +36,4 @@ It also connects with something I enjoy — competitive Pokémon — making the 
 
 ## Architecture
 
-```mermaid
-flowchart TD
-    A[Smogon Monthly JSON<br>(chaos stats)] --> B[Ingestion Script<br>(Python)]
-    B -->|Transform + Derive| C[(DuckDB Database<br>smogon_usage)]
-    C -->|SQL Queries| D[Streamlit Dashboard<br>(app.py)]
-    B -.->|Scheduled Job| E[GitHub Actions<br>(CRON monthly)]
-    E -->|Commit updated DB| C
-    E -->|Trigger rebuild| D
+![Architecture Diagram](docs/architecture.png)
