@@ -83,13 +83,6 @@ The pipeline updates automatically each month, keeping the data fresh and the da
 
 ---
 
-## Repository Structure
-<p align="center">
-  <img src="architecture.png" alt="Architecture Diagram" width="450"/>
-</p>
-
----
-
 ## Data Model
 
 Main analytics table (example):
@@ -149,3 +142,11 @@ This keeps the dashboard up-to-date without manual intervention.
 ```bash
 git clone https://github.com/luxyoga/vgcpokemonstats.git
 cd vgcpokemonstats
+
+### 3) Create a virtual environment and install dependencies
+
+**macOS / Linux**
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
