@@ -171,12 +171,12 @@ streamlit run app.py
 
 This project connects a personal interest—competitive Pokémon—with practical data engineering:  
 
-- Built a real ETL pipeline in Python  
+- Built a real ETL pipeline with Python & SQL 
 - Automated ingestion with GitHub Actions  
 - Modeled and queried data efficiently in DuckDB  
 - Delivered insights through a Streamlit dashboard  
 
-It demonstrates the full lifecycle: **ingest → transform → store → analyze → visualize**.  
+It demonstrates the full lifecycle: **Ingest → Transform → Store → Analyze → Visualize**.  
 
 ## Acknowledgments  
 
