@@ -3,7 +3,12 @@
 An automated data engineering project that ingests competitive Pokémon VGC usage data, processes it into a queryable DuckDB database, and serves an interactive dashboard with Streamlit.
 
 **Live App:** https://vgcpokemonstats.streamlit.app/
-
+<p align="center">
+  <img src="repostructure.png" alt="Repo Structure Diagram"/>
+</p>
+<p align="center">
+  <img src="repostructure.png" alt="Repo Structure Diagram"/>
+</p>
 
 ## Table of Contents
 
@@ -60,7 +65,7 @@ The pipeline updates automatically each month, keeping the data fresh and the da
 
 ## Repository Structure
 <p align="center">
-  <img src="repostructure.png" alt="Architecture Diagram"/>
+  <img src="repostructure.png" alt="Repo Structure Diagram"/>
 </p>
 
 
