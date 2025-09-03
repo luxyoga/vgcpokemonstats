@@ -142,6 +142,7 @@ This keeps the dashboard up-to-date without manual intervention.
 ```bash
 git clone https://github.com/luxyoga/vgcpokemonstats.git
 cd vgcpokemonstats
+'''markdown
 
 ### 3) Create a virtual environment and install dependencies
 
