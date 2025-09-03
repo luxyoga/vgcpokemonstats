@@ -4,7 +4,6 @@ An automated data engineering project that ingests competitive Pokémon VGC usag
 
 **Live App:** https://vgcpokemonstats.streamlit.app/
 
----
 
 ## Table of Contents
 
@@ -20,7 +19,7 @@ An automated data engineering project that ingests competitive Pokémon VGC usag
 - [Key Takeaways](#key-takeaways)  
 - [Acknowledgments](#acknowledgments)
 
----
+
 
 ## Why I Built This
 
@@ -34,7 +33,7 @@ This project was designed as my first end-to-end **data engineering case study**
 
 It also connects with something I enjoy — competitive Pokémon — making the work both practical and motivating.
 
----
+
 
 ## Project Overview
 
@@ -47,7 +46,7 @@ This project demonstrates end-to-end data engineering:
 
 The pipeline updates automatically each month, keeping the data fresh and the dashboard current.
 
----
+
 
 ## Skills Demonstrated
 
@@ -57,18 +56,20 @@ The pipeline updates automatically each month, keeping the data fresh and the da
 - **SQL analytics**: Aggregations, filtering, joins  
 - **Dashboarding**: Streamlit UI for exploration  
 
----
+
 
 ## Repository Structure
 <p align="center">
   <img src="repostructure.png" alt="Architecture Diagram" width="450"/>
 </p>
 
----
+
+
 ## Architecture
 <p align="center">
   <img src="architecture.png" alt="Architecture Diagram" width="450"/>
 </p>
+
 
 **Flow**
 
@@ -78,7 +79,7 @@ The pipeline updates automatically each month, keeping the data fresh and the da
 4. **GitHub Actions** (CRON) runs monthly to ingest the newest snapshot and commit the updated DB.  
 5. **Streamlit** reads the DuckDB file and renders the dashboard.
 
----
+
 
 ## Data Model
 
@@ -101,7 +102,7 @@ Main analytics table (example):
 
 This denormalized structure is optimized for read-heavy analytics and dashboard display.
 
----
+
 
 ## Dashboard Features
 
@@ -112,7 +113,7 @@ This denormalized structure is optimized for read-heavy analytics and dashboard 
   - Most common **tera types**  
   - Top **Pokémon** across all months  
 
----
+
 
 ## Automation with GitHub Actions
 
