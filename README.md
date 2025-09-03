@@ -35,5 +35,6 @@ It also connects with something I enjoy — competitive Pokémon — making the 
 ---
 
 ## Architecture
-
-![Architecture Diagram](architecture.png)
+<p align="center">
+  <img src="architecture.png" alt="Architecture Diagram" width="600"/>
+</p>
