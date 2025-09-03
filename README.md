@@ -17,10 +17,7 @@ An automated data engineering project that ingests competitive Pokémon VGC usag
 - [Dashboard Features](#dashboard-features)  
 - [Automation with GitHub Actions](#automation-with-github-actions)  
 - [How to Run Locally](#how-to-run-locally)  
-- [Deployment Notes (Streamlit Community Cloud)](#deployment-notes-streamlit-community-cloud)  
-- [Future Improvements](#future-improvements)  
 - [Key Takeaways](#key-takeaways)  
-- [License](#license)  
 - [Acknowledgments](#acknowledgments)
 
 ---
@@ -142,7 +139,7 @@ This keeps the dashboard up-to-date without manual intervention.
 ```bash
 git clone https://github.com/luxyoga/vgcpokemonstats.git
 cd vgcpokemonstats
-'''markdown
+```
 
 ### 3) Create a virtual environment and install dependencies
 
@@ -151,3 +148,40 @@ cd vgcpokemonstats
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+```
+**Windows (PowerShell)**
+```bash
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+### 4) (Optional) Ingest a specific month manually
+```bash
+python scripts/ingest.py --db db/poke.duckdb --month 2025-08
+```
+
+### 5) Launch the Streamlit app
+```bash
+streamlit run app.py
+```
+
+## Key Takeaways  
+
+This project connects a personal interest—competitive Pokémon—with practical data engineering:  
+
+- Built a real ETL pipeline in Python  
+- Automated ingestion with GitHub Actions  
+- Modeled and queried data efficiently in DuckDB  
+- Delivered insights through a Streamlit dashboard  
+
+It demonstrates the full lifecycle: **ingest → transform → store → analyze → visualize**.  
+
+## Acknowledgments  
+
+- **Data source**: Smogon/Showdown usage stats  
+- **Tools**: DuckDB, Streamlit, GitHub Actions  
+
+
+
+
