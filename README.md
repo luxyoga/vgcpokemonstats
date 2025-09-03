@@ -61,7 +61,7 @@ The pipeline updates automatically each month, keeping the data fresh and the da
 
 ## Repository Structure
 <p align="center">
-  <img src="architecture.png" alt="Architecture Diagram" width="450"/>
+  <img src="repostructure.png" alt="Architecture Diagram" width="450"/>
 </p>
 
 ---
