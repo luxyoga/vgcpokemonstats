@@ -36,4 +36,4 @@ It also connects with something I enjoy — competitive Pokémon — making the 
 
 ## Architecture
 
-![Architecture Diagram](docs/architecture.png)
+![Architecture Diagram](architecture.png)
