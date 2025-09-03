@@ -4,10 +4,10 @@ An automated data engineering project that ingests competitive Pokémon VGC usag
 
 **Live App:** https://vgcpokemonstats.streamlit.app/
 <p align="center">
-  <img src="repostructure.png" alt="Repo Structure Diagram"/>
+  <img src="dashboardscreenshot1.png" alt="Screenshot of VGC Dashboard 1"/>
 </p>
 <p align="center">
-  <img src="repostructure.png" alt="Repo Structure Diagram"/>
+  <img src="repostructure.png" alt="Screenshot of VGC Dashboard 2"/>
 </p>
 
 ## Table of Contents
