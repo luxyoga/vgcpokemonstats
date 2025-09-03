@@ -23,7 +23,7 @@ An automated data engineering project that ingests competitive Pokémon VGC usag
 
 ## Why I Built This
 
-This project was designed as my first end-to-end **data engineering case study**. I wanted to practice the core elements of the discipline:  
+This project was designed as my first end-to-end **data engineering project**. I wanted to practice the core elements of the discipline:  
 
 - **Extract–Transform–Load (ETL)** from an evolving, real-world data source.  
 - **Schema design and data modeling** to make messy JSON usable.  
