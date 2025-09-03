@@ -1,77 +1,46 @@
-# VGC Usage Stats Pipeline
+# Pokémon VGC Usage Stats — Automated Data Engineering Project
 
+A fully automated **data pipeline + interactive dashboard** project that ingests competitive Pokémon VGC usage statistics from [Smogon](https://www.smogon.com/stats/), transforms the raw JSON into a structured **DuckDB** model, and publishes a live analytics dashboard using **Streamlit**.  
 
-## Project Overview
+**Live app:** [https://vgcpokemonstats.streamlit.app/](https://vgcpokemonstats.streamlit.app/)  
+**Repo:** [GitHub/luxyoga/vgcpokemonstats](https://github.com/luxyoga/vgcpokemonstats)
 
-This project builds a data pipeline that ingests competitive Pokémon VGC usage data, cleans and structures it, loads it into a DuckDB database, and produces insights & visualizations.
+---
 
-It demonstrates practical data engineering skills:
-	•	Data ingestion (parsing raw .txt stats from Smogon/Showdown)
-	•	ETL pipeline (extract → transform → load)
-	•	SQL analytics (aggregations, joins, window functions)
-	•	Visualization (Python, matplotlib/seaborn)
-	•	Optional dashboard layer (Streamlit)
+## Why I Built This
 
+This project was designed as my first end-to-end **data engineering case study**. I wanted to practice the core elements of the discipline:  
 
+- **Extract–Transform–Load (ETL)** from an evolving, real-world data source.  
+- **Schema design and data modeling** to make messy JSON usable.  
+- **Workflow automation** with GitHub Actions for ongoing ingestion.  
+- **Analytics and visualization** through SQL queries and dashboards.  
+- **Deployment and reproducibility** so others can run and use the project.  
 
-## Motivation
+It also connects with something I enjoy — competitive Pokémon — making the work both practical and motivating.
 
-Competitive Pokémon is full of stats on which Pokémon, items, and abilities dominate the meta. These files are public but messy and unstructured.
-
-This project shows how to:
-	1.	Turn unstructured raw text into clean, queryable tables.
-	2.	Use SQL to answer real meta questions (e.g., “What are the top 50 Pokémon and their signature items?”).
-	3.	Build a reusable pipeline that updates as new monthly stats drop.
-
-
-
-## Tech Stack
-	•	Python (data parsing, ETL scripts)
-	•	Pandas (intermediate cleaning)
-	•	DuckDB (lightweight analytics warehouse)
-	•	SQL (joins, window functions, aggregations)
-	•	matplotlib / seaborn (visualization)
-	•	Streamlit (optional, for dashboard)
-
-
-
-## Project Structure
-
-<img width="933" height="292" alt="Project Structure" src="https://github.com/user-attachments/assets/83f3fb5a-cc51-400b-bdae-e0d28ef0969c" />
-
-
-
-## Data Sources
-	•	Smogon Usage Stats: https://www.smogon.com/stats/
-	•	Usage rankings (e.g., gen9vgc2025-1760.txt)
-	•	Moveset stats (e.g., gen9vgc2025-1760-chaos.txt)
-
-
- ## Example Insights
-
-**Top 15 Pokémon (Aug 2025) and their #1 Item**
-
-*Window Function*
-
-<img width="870" height="146" alt="top15pokemonsql" src="https://github.com/user-attachments/assets/8ad205ce-bfe6-4f03-a4ea-601a591c98a0" />
+---
 
 ## Skills Demonstrated
 
-	•	Parsing unstructured text into structured data.
-	•	Building modular ETL pipelines.
-	•	Using DuckDB as an analytics database.
-	•	Writing advanced SQL (window functions, CTEs, joins).
-	•	Creating visualizations that explain the meta clearly.
-	•	Packaging into a portfolio-ready project.
+- **Data ingestion & APIs:** Downloading structured JSON data directly from Smogon, handling changes in file naming (e.g., monthly regulation shifts).  
+- **Data transformation:** Flattening nested JSON into tabular form, computing derived attributes (top item, top moves, spreads, tera type).  
+- **Data modeling:** Designing a fact-style table `smogon_usage` with clear columns for usage %, items, tera types, natures, spreads, and moves.  
+- **SQL & DuckDB:** Leveraging SQL for aggregation, filtering, and analytics in a portable, serverless OLAP database.  
+- **Automation & orchestration:** GitHub Actions scheduled workflow to run ingestion on the 3rd of every month, ensuring fresh data.  
+- **Reproducibility:** Database versioned in Git for small size, requirements tracked in `requirements.txt`.  
+- **Visualization & reporting:** Interactive dashboard in Streamlit with meta distribution charts, top-N tables, Pokémon profiles, and “all-time” aggregation.  
+- **Engineering mindset:** Built for idempotency (safe re-runs), scalability (can ingest any range of months), and resilience (handles missing/late files).  
 
- ## Next Steps
-	•	Automate monthly ingestion (download + parse).
-	•	Add matchup/teammate data for synergy analysis.
-	•	Deploy interactive Streamlit dashboard.
+---
 
- ## Author
+## Architecture
 
-Built by Lux Yogasegaran as a data engineering portfolio project.
- 
- 	
-
+```mermaid
+flowchart TD
+    A[Smogon Monthly JSON<br>(chaos stats)] --> B[Ingestion Script<br>(Python)]
+    B -->|Transform + Derive| C[(DuckDB Database<br>smogon_usage)]
+    C -->|SQL Queries| D[Streamlit Dashboard<br>(app.py)]
+    B -.->|Scheduled Job| E[GitHub Actions<br>(CRON monthly)]
+    E -->|Commit updated DB| C
+    E -->|Trigger rebuild| D
