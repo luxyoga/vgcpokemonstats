@@ -77,7 +77,7 @@ The pipeline updates automatically each month, keeping the data fresh and the da
 2. **Transformations** parse, clean, and derive features (items, tera types, spreads, moves).  
 3. Data is written to **DuckDB**.  
 4. **GitHub Actions** (CRON) runs monthly to ingest the newest snapshot and commit the updated DB.  
-5. **Streamlit** reads the DuckDB file and renders the dashboard.
+5. **Streamlit** reads the DuckDB and Python file and renders the dashboard.
 
 
 
