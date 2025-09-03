@@ -135,7 +135,6 @@ Monthly ingestion is scheduled via **`.github/workflows/ingest.yml`**:
 
 This keeps the dashboard up-to-date without manual intervention.
 
----
 
 ## How to Run Locally
 
