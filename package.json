@@ -1,0 +1,16 @@
+{
+  "name": "budget-investing-tracker",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Budget & investing tracker",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "node backend/server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.7.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  }
+}

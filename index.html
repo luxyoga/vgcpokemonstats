@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Budget & Investing Tracker</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="logo">
+        <div class="logo-mark">BI</div>
+        <div>
+          <p class="logo-title">Budget & Investing Tracker</p>
+          <p class="logo-subtitle">Your personal finance control center</p>
+        </div>
+      </div>
+      <nav class="top-nav">
+        <a href="#dashboard">Dashboard</a>
+        <a href="#income">Income</a>
+        <a href="#expenses">Expenses</a>
+        <a href="#goals">Goals</a>
+        <a href="#investments">Investments</a>
+      </nav>
+      <button class="ghost-button" id="exportDataBtn">Export Data</button>
+    </header>
+
+    <main class="app-shell">
+      <section class="panel" id="dashboard">
+        <div class="panel-header">
+          <div>
+            <h1>Financial Overview</h1>
+            <p>Track cash flow, savings momentum, and portfolio progress at a glance.</p>
+          </div>
+          <div class="filters">
+            <label>
+              Month
+              <select id="filterMonth"></select>
+            </label>
+            <label>
+              Year
+              <select id="filterYear"></select>
+            </label>
+          </div>
+        </div>
+
+        <div class="card-grid">
+          <div class="stat-card">
+            <p class="stat-label">Income</p>
+            <p class="stat-value" id="statIncome">$0</p>
+            <p class="stat-footnote" id="incomeNote">0 streams</p>
+          </div>
+          <div class="stat-card">
+            <p class="stat-label">Expenses</p>
+            <p class="stat-value" id="statExpenses">$0</p>
+            <p class="stat-footnote" id="expenseNote">0 transactions</p>
+          </div>
+          <div class="stat-card highlight">
+            <p class="stat-label">Net Cash Flow</p>
+            <p class="stat-value" id="statNet">$0</p>
+            <p class="stat-footnote" id="netNote">0% savings rate</p>
+          </div>
+          <div class="stat-card highlight">
+            <p class="stat-label">Net Worth</p>
+            <p class="stat-value" id="statNetWorth">$0</p>
+            <p class="stat-footnote" id="netWorthNote">Assets + cash flow</p>
+          </div>
+          <div class="stat-card">
+            <p class="stat-label">Savings Goals</p>
+            <p class="stat-value" id="statGoals">$0</p>
+            <p class="stat-footnote" id="goalNote">0 active goals</p>
+          </div>
+          <div class="stat-card">
+            <p class="stat-label">Subscriptions</p>
+            <p class="stat-value" id="statSubscriptions">$0</p>
+            <p class="stat-footnote" id="subscriptionNote">0 active</p>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <div class="panel-card">
+            <h2>Cash Flow Timeline</h2>
+            <div id="cashflowTimeline" class="chart"></div>
+          </div>
+          <div class="panel-card">
+            <h2>Net Worth Trend</h2>
+            <div id="netWorthTrend" class="chart"></div>
+          </div>
+          <div class="panel-card">
+            <h2>Expense Mix</h2>
+            <div class="chart chart-split">
+              <div id="expensePie" class="pie-chart"></div>
+              <div id="expenseLegend" class="legend"></div>
+            </div>
+          </div>
+          <div class="panel-card">
+            <h2>Income Mix</h2>
+            <div class="chart chart-split">
+              <div id="incomePie" class="pie-chart"></div>
+              <div id="incomeLegend" class="legend"></div>
+            </div>
+          </div>
+          <div class="panel-card">
+            <h2>Cash Flow by Category</h2>
+            <div id="categoryBreakdown" class="list-stack"></div>
+          </div>
+          <div class="panel-card">
+            <h2>Upcoming Goals</h2>
+            <div id="goalProgress" class="list-stack"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="income">
+        <div class="panel-header">
+          <div>
+            <h1>Income Streams</h1>
+            <p>Add salary, business income, or any consistent revenue source.</p>
+          </div>
+        </div>
+        <form class="entry-form" id="incomeForm">
+          <div class="edit-banner hidden" data-edit-banner="income">
+            Editing income entry
+          </div>
+          <div class="form-grid">
+            <label>
+              Source
+              <input type="text" name="name" placeholder="Salary" required />
+            </label>
+            <label>
+              Income Type
+              <select name="incomeType" required>
+                <option value="Salary">Salary</option>
+                <option value="Hourly">Hourly</option>
+                <option value="Passive">Passive Income</option>
+                <option value="Rental">Rental Income</option>
+                <option value="Variable">Variable Income</option>
+                <option value="Other">Other</option>
+              </select>
+            </label>
+            <label>
+              Amount
+              <input type="number" name="amount" step="0.01" min="0" placeholder="3500" required />
+            </label>
+            <label>
+              Date
+              <input type="date" name="date" />
+            </label>
+            <label>
+              Notes
+              <input type="text" name="category" placeholder="Primary income" />
+            </label>
+            <label class="inline">
+              <input type="checkbox" name="recurring" />
+              Recurring
+            </label>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="primary-button" data-submit-label="income">
+              Add Income
+            </button>
+            <button type="button" class="secondary-button hidden" data-cancel-edit="income">
+              Cancel Edit
+            </button>
+          </div>
+        </form>
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Source</th>
+                <th>Type</th>
+                <th>Date</th>
+                <th>Amount</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="incomeTable"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel" id="expenses">
+        <div class="panel-header">
+          <div>
+            <h1>Expenses</h1>
+            <p>Track fixed and variable costs to understand your spending.</p>
+          </div>
+        </div>
+        <form class="entry-form" id="expenseForm">
+          <div class="edit-banner hidden" data-edit-banner="expenses">
+            Editing expense entry
+          </div>
+          <div class="form-grid">
+            <label>
+              Expense
+              <input type="text" name="name" placeholder="Rent" required />
+            </label>
+            <label>
+              Category
+              <select name="category" required>
+                <option value="Rent">Rent</option>
+                <option value="Mortgage">Mortgage</option>
+                <option value="Car">Car</option>
+                <option value="Insurance">Insurance</option>
+                <option value="Phone">Phone</option>
+                <option value="Utilities">Utilities</option>
+                <option value="Internet">Internet</option>
+                <option value="Debt">Debt</option>
+                <option value="Subscriptions">Subscriptions</option>
+                <option value="Groceries">Groceries</option>
+                <option value="Savings">Savings</option>
+                <option value="Investments">Investments</option>
+                <option value="Emergency Fund">Emergency Fund</option>
+                <option value="Nest Egg">Nest Egg</option>
+                <option value="Vet Bills">Vet Bills</option>
+                <option value="Eating Out">Eating Out</option>
+                <option value="Uber">Uber</option>
+                <option value="Dates">Dates</option>
+                <option value="Custom">Custom</option>
+              </select>
+            </label>
+            <label>
+              Amount
+              <input type="number" name="amount" step="0.01" min="0" placeholder="1200" required />
+            </label>
+            <label>
+              Date
+              <input type="date" name="date" />
+            </label>
+            <label id="customCategoryField" class="hidden">
+              Custom Category
+              <input type="text" name="customCategory" placeholder="Parking, Pet care..." />
+            </label>
+            <label>
+              Subscription Name
+              <input type="text" name="subscriptionName" placeholder="Netflix, Spotify..." />
+            </label>
+            <label class="inline">
+              <input type="checkbox" name="recurring" />
+              Recurring
+            </label>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="primary-button" data-submit-label="expenses">
+              Add Expense
+            </button>
+            <button type="button" class="secondary-button hidden" data-cancel-edit="expenses">
+              Cancel Edit
+            </button>
+          </div>
+        </form>
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Expense</th>
+                <th>Category</th>
+                <th>Date</th>
+                <th>Amount</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="expenseTable"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel" id="goals">
+        <div class="panel-header">
+          <div>
+            <h1>Savings Goals</h1>
+            <p>Define targets and track your progress toward financial freedom.</p>
+          </div>
+        </div>
+        <form class="entry-form" id="goalForm">
+          <div class="edit-banner hidden" data-edit-banner="goals">
+            Editing goal
+          </div>
+          <div class="form-grid">
+            <label>
+              Goal Name
+              <input type="text" name="name" placeholder="Emergency fund" required />
+            </label>
+            <label>
+              Target Amount
+              <input type="number" name="target" step="0.01" min="0" placeholder="10000" required />
+            </label>
+            <label>
+              Current Saved
+              <input type="number" name="saved" step="0.01" min="0" placeholder="2500" />
+            </label>
+            <label>
+              Target Date
+              <input type="date" name="dueDate" />
+            </label>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="primary-button" data-submit-label="goals">
+              Add Goal
+            </button>
+            <button type="button" class="secondary-button hidden" data-cancel-edit="goals">
+              Cancel Edit
+            </button>
+          </div>
+        </form>
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Goal</th>
+                <th>Target</th>
+                <th>Saved</th>
+                <th>Target Date</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="goalTable"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel" id="investments">
+        <div class="panel-header">
+          <div>
+            <h1>Investments & Portfolio</h1>
+            <p>Keep an eye on allocations, contributions, and growth opportunities.</p>
+          </div>
+        </div>
+        <form class="entry-form" id="investmentForm">
+          <div class="edit-banner hidden" data-edit-banner="investments">
+            Editing investment entry
+          </div>
+          <div class="form-grid">
+            <label>
+              Investment
+              <input type="text" name="name" placeholder="Index fund" required />
+            </label>
+            <label>
+              Symbol
+              <input type="text" name="symbol" placeholder="VOO / AAPL" />
+            </label>
+            <label>
+              Type
+              <input type="text" name="type" placeholder="ETF / Crypto / Retirement" />
+            </label>
+            <label>
+              Contribution Amount
+              <input type="number" name="amount" step="0.01" min="0" placeholder="500" />
+            </label>
+            <label>
+              Purchase Price
+              <input type="number" name="purchasePrice" step="0.01" min="0" placeholder="110.50" />
+            </label>
+            <label>
+              Shares
+              <input type="number" name="shares" step="0.0001" min="0" placeholder="10" />
+            </label>
+            <label>
+              Current Price
+              <input type="number" name="currentPrice" step="0.01" min="0" placeholder="115.20" />
+            </label>
+            <label>
+              Date
+              <input type="date" name="date" />
+            </label>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="primary-button" data-submit-label="investments">
+              Add Investment
+            </button>
+            <button type="button" class="secondary-button hidden" data-cancel-edit="investments">
+              Cancel Edit
+            </button>
+            <button type="button" class="ghost-button" id="refreshPricesBtn">
+              Refresh Prices
+            </button>
+          </div>
+          <p class="muted-text status-text" id="priceStatus"></p>
+        </form>
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Investment</th>
+                <th>Symbol</th>
+                <th>Shares</th>
+                <th>Purchase</th>
+                <th>Current</th>
+                <th>Value</th>
+                <th>Updated</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="investmentTable"></tbody>
+          </table>
+        </div>
+
+        <div class="subsection">
+          <h2>Assets</h2>
+          <p class="muted-text">
+            Track assets with purchase price and current value to roll into net worth.
+          </p>
+        </div>
+        <form class="entry-form" id="assetForm">
+          <div class="edit-banner hidden" data-edit-banner="assets">
+            Editing asset
+          </div>
+          <div class="form-grid">
+            <label>
+              Asset
+              <input type="text" name="name" placeholder="Property / Car / Stock" required />
+            </label>
+            <label>
+              Category
+              <input type="text" name="category" placeholder="Real estate / Equity" />
+            </label>
+            <label>
+              Purchase Price
+              <input type="number" name="purchasePrice" step="0.01" min="0" placeholder="20000" required />
+            </label>
+            <label>
+              Current Value
+              <input type="number" name="currentValue" step="0.01" min="0" placeholder="25000" required />
+            </label>
+            <label>
+              Mortgage Balance
+              <input type="number" name="mortgageBalance" step="0.01" min="0" placeholder="180000" />
+            </label>
+            <label>
+              Purchase Date
+              <input type="date" name="date" />
+            </label>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="primary-button" data-submit-label="assets">
+              Add Asset
+            </button>
+            <button type="button" class="secondary-button hidden" data-cancel-edit="assets">
+              Cancel Edit
+            </button>
+          </div>
+        </form>
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Asset</th>
+                <th>Category</th>
+                <th>Purchase</th>
+                <th>Current</th>
+                <th>Mortgage</th>
+                <th>Equity</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="assetTable"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <p>Private by default. Share or export when you are ready.</p>
+    </footer>
+    <section class="debug-panel hidden" id="debugPanel">
+      <div class="debug-header">
+        <h3>Diagnostics</h3>
+        <button type="button" class="ghost-button" id="debugCloseBtn">Close</button>
+      </div>
+      <div class="debug-actions">
+        <button type="button" class="secondary-button" id="debugRunBtn">
+          Run Diagnostics
+        </button>
+        <button type="button" class="secondary-button" id="debugShowDataBtn">
+          Show Saved Data
+        </button>
+        <button type="button" class="secondary-button" id="debugResetFiltersBtn">
+          Reset Filters
+        </button>
+      </div>
+      <pre id="debugOutput"></pre>
+    </section>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
