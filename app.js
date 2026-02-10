@@ -53,6 +53,8 @@ const dom = {
   goalProgress: document.getElementById("goalProgress"),
   cashflowTimeline: document.getElementById("cashflowTimeline"),
   netWorthTrend: document.getElementById("netWorthTrend"),
+  netWorthPie: document.getElementById("netWorthPie"),
+  netWorthLegend: document.getElementById("netWorthLegend"),
   expensePie: document.getElementById("expensePie"),
   expenseLegend: document.getElementById("expenseLegend"),
   incomePie: document.getElementById("incomePie"),
@@ -70,7 +72,18 @@ const dom = {
   debugShowDataBtn: document.getElementById("debugShowDataBtn"),
   debugResetFiltersBtn: document.getElementById("debugResetFiltersBtn"),
   debugCloseBtn: document.getElementById("debugCloseBtn"),
+  importFileInput: document.getElementById("importFileInput"),
+  importUploadBtn: document.getElementById("importUploadBtn"),
+  importUploadStatus: document.getElementById("importUploadStatus"),
+  importPreviewTable: document.getElementById("importPreviewTable"),
+  importConfirmBtn: document.getElementById("importConfirmBtn"),
+  uploadCsvTopBtn: document.getElementById("uploadCsvTopBtn"),
+  expenseToggleBtn: document.getElementById("expenseToggleBtn"),
 };
+
+let activeImportId = null;
+let importPreviewExpanded = false;
+let expensesExpanded = false;
 
 const editState = {
   income: null,
@@ -139,10 +152,26 @@ window.addEventListener("unhandledrejection", (event) => {
 
 const fetchJson = async (url, options = {}) => {
   const response = await fetch(url, options);
+  const contentType = response.headers.get("content-type") || "";
   if (!response.ok) {
-    throw new Error(`API error: ${response.status}`);
+    let detail = `API error: ${response.status}`;
+    try {
+      if (contentType.includes("application/json")) {
+        const payload = await response.json();
+        detail = payload.error || detail;
+      } else {
+        const text = await response.text();
+        if (text) detail = text;
+      }
+    } catch (error) {
+      console.error("Failed to parse error response", error);
+    }
+    throw new Error(detail);
   }
-  return response.json();
+  if (contentType.includes("application/json")) {
+    return response.json();
+  }
+  return {};
 };
 
 const refreshData = async () => {
@@ -161,7 +190,9 @@ const loadData = () => cachedData;
 
 const toISODate = (value) => {
   if (!value) return "";
-  const date = new Date(value);
+  const trimmed = String(value).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+  const date = new Date(trimmed);
   if (Number.isNaN(date.getTime())) return "";
   return date.toISOString().slice(0, 10);
 };
@@ -277,6 +308,37 @@ const getTotals = (data, filter) => {
   };
 };
 
+const calculatePercentageChange = (current, previous) => {
+  if (!previous || previous === 0) return null;
+  const change = ((current - previous) / Math.abs(previous)) * 100;
+  return change;
+};
+
+const formatTrend = (percentageChange) => {
+  if (percentageChange === null || isNaN(percentageChange)) return null;
+  const sign = percentageChange >= 0 ? "+" : "";
+  const arrow = percentageChange >= 0 ? "↑" : "↓";
+  const value = Math.abs(percentageChange).toFixed(1);
+  return {
+    text: `${sign}${value}%`,
+    arrow: arrow,
+    isPositive: percentageChange >= 0,
+  };
+};
+
+const getPreviousMonthFilter = (currentFilter) => {
+  if (currentFilter.month === 0) {
+    return null;
+  }
+  let prevMonth = currentFilter.month - 1;
+  let prevYear = currentFilter.year;
+  if (prevMonth === 0) {
+    prevMonth = 12;
+    prevYear = prevYear - 1;
+  }
+  return { month: prevMonth, year: prevYear };
+};
+
 const renderDashboard = (data) => {
   const filter = getActiveFilter();
   const totals = getTotals(data, filter);
@@ -306,16 +368,50 @@ const renderDashboard = (data) => {
   );
   dom.statSubscriptions.textContent = formatMoney(subscriptionTotal);
 
-  dom.incomeNote.textContent = `${totals.income.length} streams`;
-  dom.expenseNote.textContent = `${totals.expenses.length} transactions`;
+  const prevFilter = getPreviousMonthFilter(filter);
+  let prevTotals = null;
+  if (prevFilter) {
+    prevTotals = getTotals(data, prevFilter);
+  }
+
+  const incomeTrend = prevTotals
+    ? formatTrend(calculatePercentageChange(totals.incomeTotal, prevTotals.incomeTotal))
+    : null;
+  const expenseTrend = prevTotals
+    ? formatTrend(calculatePercentageChange(totals.expenseTotal, prevTotals.expenseTotal))
+    : null;
+  const prevNetWorth = prevTotals
+    ? prevTotals.incomeTotal -
+      prevTotals.expenseTotal +
+      prevTotals.investmentValueTotal +
+      prevTotals.assetTotal
+    : null;
+  const netWorthTrend = prevNetWorth !== null
+    ? formatTrend(calculatePercentageChange(netWorth, prevNetWorth))
+    : null;
+
+  dom.incomeNote.innerHTML = `<span class="footnote-base">${totals.income.length} streams</span>${
+    incomeTrend
+      ? `<span class="trend-indicator ${incomeTrend.isPositive ? "trend-up" : "trend-down"}"><span class="trend-arrow">${incomeTrend.arrow}</span> <span class="trend-percentage">${incomeTrend.text}</span></span>`
+      : ""
+  }`;
+  dom.expenseNote.innerHTML = `<span class="footnote-base">${totals.expenses.length} transactions</span>${
+    expenseTrend
+      ? `<span class="trend-indicator ${expenseTrend.isPositive ? "trend-up" : "trend-down"}"><span class="trend-arrow">${expenseTrend.arrow}</span> <span class="trend-percentage">${expenseTrend.text}</span></span>`
+      : ""
+  }`;
   dom.netNote.textContent = `${savingsRate}% savings rate`;
   dom.goalNote.textContent = `${data.goals.length} active goals`;
-  dom.netWorthNote.textContent = `Assets + cash flow`;
+  dom.netWorthNote.innerHTML = `<span class="footnote-base">Assets + cash flow</span>${
+    netWorthTrend
+      ? `<span class="trend-indicator ${netWorthTrend.isPositive ? "trend-up" : "trend-down"}"><span class="trend-arrow">${netWorthTrend.arrow}</span> <span class="trend-percentage">${netWorthTrend.text}</span></span>`
+      : ""
+  }`;
   dom.subscriptionNote.textContent = `${subscriptionExpenses.length} active`;
 
   const categoryTotals = {};
   totals.expenses.forEach((expense) => {
-    const category = getExpenseCategory(expense);
+    const category = getExpenseMixLabel(expense);
     categoryTotals[category] = (categoryTotals[category] || 0) + Number(expense.amount || 0);
   });
 
@@ -343,7 +439,9 @@ const renderDashboard = (data) => {
           ? Math.min(100, Math.round((Number(goal.saved || 0) / goal.target) * 100))
           : 0;
         const subtitle = `${progress}% of ${formatMoney(goal.target)}`;
-        dom.goalProgress.append(createListItem(goal.name, subtitle, "badge"));
+        dom.goalProgress.append(
+          createGoalProgressItem(goal.name, subtitle, progress)
+        );
       });
   }
 
@@ -360,6 +458,24 @@ const createListItem = (label, value, badgeClass) => {
   right.className = badgeClass;
   right.textContent = value;
   wrapper.append(left, right);
+  return wrapper;
+};
+
+const createGoalProgressItem = (label, value, progress) => {
+  const wrapper = document.createElement("div");
+  wrapper.className = "goal-item";
+
+  const header = document.createElement("div");
+  header.className = "goal-header";
+  const title = document.createElement("span");
+  title.textContent = label;
+  const badge = document.createElement("span");
+  badge.className = "badge goal-pill";
+  badge.style.setProperty("--goal-progress", `${progress}%`);
+  badge.textContent = value;
+  header.append(title, badge);
+
+  wrapper.append(header);
   return wrapper;
 };
 
@@ -426,7 +542,10 @@ const renderTables = (data) => {
     )
   );
 
-  renderTable(totals.expenses, dom.expenseTable, (entry) =>
+  const visibleExpenses = expensesExpanded
+    ? totals.expenses
+    : totals.expenses.slice(0, 15);
+  renderTable(visibleExpenses, dom.expenseTable, (entry) =>
     formatRowWithDelete(
       [
         document.createTextNode(entry.name),
@@ -438,6 +557,11 @@ const renderTables = (data) => {
       () => removeEntry("expenses", entry.id)
     )
   );
+  if (dom.expenseToggleBtn) {
+    const shouldShow = totals.expenses.length > 15;
+    dom.expenseToggleBtn.classList.toggle("hidden", !shouldShow);
+    dom.expenseToggleBtn.textContent = expensesExpanded ? "Show Less" : "Show More";
+  }
 
   renderTable(data.goals, dom.goalTable, (entry) =>
     formatRowWithDelete(
@@ -456,12 +580,12 @@ const renderTables = (data) => {
     totals.investments,
     dom.investmentTable,
     (entry) => {
-    const shares = Number(entry.shares || 0);
-    const currentPrice = Number(entry.currentPrice || 0);
-    const currentValue = shares && currentPrice ? shares * currentPrice : null;
-    const updated = entry.lastPriceUpdated
-      ? new Date(entry.lastPriceUpdated).toLocaleDateString()
-      : "—";
+      const shares = Number(entry.shares || 0);
+      const currentPrice = Number(entry.currentPrice || 0);
+      const currentValue = shares && currentPrice ? shares * currentPrice : null;
+      const updated = entry.lastPriceUpdated
+        ? new Date(entry.lastPriceUpdated).toLocaleDateString()
+        : "—";
       return formatRowWithDelete(
         [
           document.createTextNode(entry.name),
@@ -482,35 +606,24 @@ const renderTables = (data) => {
     },
     8
   );
-    formatRowWithDelete(
-      [
-        document.createTextNode(entry.name),
-        document.createTextNode(entry.type || "—"),
-        document.createTextNode(entry.date || "—"),
-        document.createTextNode(formatMoney(entry.amount)),
-      ],
-      () => startEdit("investments", entry),
-      () => removeEntry("investments", entry.id)
-    )
-  );
 
   renderTable(
     data.assets,
     dom.assetTable,
     (entry) => {
-    const equity =
-      Number(entry.currentValue || 0) - Number(entry.mortgageBalance || 0);
+      const equity =
+        Number(entry.currentValue || 0) - Number(entry.mortgageBalance || 0);
       return formatRowWithDelete(
-      [
-        document.createTextNode(entry.name),
-        document.createTextNode(entry.category || "—"),
-        document.createTextNode(formatMoney(entry.purchasePrice || 0)),
-        document.createTextNode(formatMoney(entry.currentValue || 0)),
-        document.createTextNode(formatMoney(entry.mortgageBalance || 0)),
-        document.createTextNode(formatMoney(equity)),
-      ],
+        [
+          document.createTextNode(entry.name),
+          document.createTextNode(entry.category || "—"),
+          document.createTextNode(formatMoney(entry.purchasePrice || 0)),
+          document.createTextNode(formatMoney(entry.currentValue || 0)),
+          document.createTextNode(formatMoney(entry.mortgageBalance || 0)),
+          document.createTextNode(formatMoney(equity)),
+        ],
         () => startEdit("assets", entry),
-      () => removeEntry("assets", entry.id)
+        () => removeEntry("assets", entry.id)
       );
     },
     7
@@ -836,6 +949,101 @@ const bindEvents = () => {
     link.click();
     URL.revokeObjectURL(url);
   });
+  if (dom.importUploadBtn)
+    dom.importUploadBtn.addEventListener("click", async () => {
+      if (!dom.importFileInput) return;
+      const file = dom.importFileInput.files && dom.importFileInput.files[0];
+      if (!file) {
+        if (dom.importUploadStatus)
+          dom.importUploadStatus.textContent = "Choose a PDF file first.";
+        return;
+      }
+      if (dom.importUploadStatus) dom.importUploadStatus.textContent = "Uploading...";
+      try {
+        const formData = new FormData();
+        formData.append("statement", file);
+        const response = await fetch("/api/imports/upload", {
+          method: "POST",
+          body: formData,
+        });
+        const contentType = response.headers.get("content-type") || "";
+        const rawBody = await response.text();
+        console.log("Import upload response:", {
+          status: response.status,
+          contentType,
+          rawBody,
+        });
+        let result = {};
+        if (contentType.includes("application/json")) {
+          try {
+            result = JSON.parse(rawBody);
+          } catch (error) {
+            console.error("Failed to parse JSON response", error);
+            throw new Error(rawBody || "Upload failed");
+          }
+        }
+        if (!response.ok) {
+          throw new Error(result.error || rawBody || "Upload failed");
+        }
+        console.log("Import upload response:", result);
+        activeImportId = result.import_id || null;
+        if (!activeImportId) {
+          throw new Error("Upload did not return an import id.");
+        }
+        if (dom.importUploadStatus)
+          dom.importUploadStatus.textContent = "Upload complete. Loading preview...";
+        await loadImportPreview(activeImportId);
+      } catch (error) {
+        console.error("Import upload failed", error);
+        if (dom.importUploadStatus)
+          dom.importUploadStatus.textContent = `Upload failed: ${
+            error && error.message ? error.message : "Please try again."
+          }`;
+      }
+    });
+  if (dom.importConfirmBtn)
+    dom.importConfirmBtn.addEventListener("click", async () => {
+      if (!activeImportId) {
+        if (dom.importUploadStatus)
+          dom.importUploadStatus.textContent = "Upload a statement first.";
+        return;
+      }
+      if (dom.importUploadStatus) dom.importUploadStatus.textContent = "Confirming import...";
+      try {
+        const result = await fetchJson(`${API_BASE}/imports/${activeImportId}/confirm`, {
+          method: "POST",
+        });
+        if (dom.importUploadStatus)
+          dom.importUploadStatus.textContent = `Imported ${result.imported}, skipped ${result.skipped}.`;
+        const data = await refreshData();
+        renderAll(data);
+      } catch (error) {
+        console.error("Import confirm failed", error);
+        if (dom.importUploadStatus)
+          dom.importUploadStatus.textContent = `Confirm failed: ${
+            error && error.message ? error.message : "Please try again."
+          }`;
+      }
+    });
+  if (dom.expenseToggleBtn)
+    dom.expenseToggleBtn.addEventListener("click", () => {
+      expensesExpanded = !expensesExpanded;
+      renderTables(loadData());
+    });
+  if (dom.uploadCsvTopBtn)
+    dom.uploadCsvTopBtn.addEventListener("click", () => {
+      const importSection = document.getElementById("import");
+      if (importSection) {
+        importSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
+  const importToggleBtn = document.getElementById("importToggleBtn");
+  if (importToggleBtn)
+    importToggleBtn.addEventListener("click", () => {
+      importPreviewExpanded = !importPreviewExpanded;
+      importToggleBtn.textContent = importPreviewExpanded ? "Show Less" : "Show More";
+      loadImportPreview(activeImportId);
+    });
   if (dom.debugRunBtn)
     dom.debugRunBtn.addEventListener("click", () => {
     runDiagnostics();
@@ -898,6 +1106,86 @@ const buildMonthSeries = (data, year) => {
   });
 };
 
+const loadImportPreview = async (importId) => {
+  if (!dom.importPreviewTable) return;
+  dom.importPreviewTable.innerHTML = "";
+  if (!importId) {
+    const row = document.createElement("tr");
+    const cell = document.createElement("td");
+    cell.colSpan = 5;
+    cell.textContent = "Upload a CSV to preview transactions.";
+    cell.style.textAlign = "center";
+    cell.style.color = "#6b7280";
+    row.append(cell);
+    dom.importPreviewTable.append(row);
+    return;
+  }
+  try {
+    const result = await fetchJson(`${API_BASE}/imports/${importId}`);
+    const allRows = result.staging || [];
+    const rows = importPreviewExpanded ? allRows : allRows.slice(0, 15);
+    if (!rows.length) {
+      const row = document.createElement("tr");
+      const cell = document.createElement("td");
+      cell.colSpan = 5;
+      cell.textContent = "No staged transactions yet.";
+      cell.style.textAlign = "center";
+      cell.style.color = "#6b7280";
+      row.append(cell);
+      dom.importPreviewTable.append(row);
+      return;
+    }
+    rows.forEach((item) => {
+      const row = document.createElement("tr");
+      const cells = [
+        item.description || "—",
+        item.type || "staged",
+        item.date || "—",
+        item.amount !== null && item.amount !== undefined ? formatMoney(item.amount) : "—",
+        item.category || "—",
+      ];
+      cells.forEach((value) => {
+        const cell = document.createElement("td");
+        cell.textContent = value;
+        row.append(cell);
+      });
+      dom.importPreviewTable.append(row);
+    });
+  } catch (error) {
+    console.error("Failed to load import preview", error);
+    if (dom.importUploadStatus)
+      dom.importUploadStatus.textContent = `Preview failed: ${
+        error && error.message ? error.message : "Please try again."
+      }`;
+  }
+};
+
+const renderPreviewLines = (lines) => {
+  if (!dom.importPreviewTable) return;
+  dom.importPreviewTable.innerHTML = "";
+  if (!lines.length) {
+    const row = document.createElement("tr");
+    const cell = document.createElement("td");
+    cell.colSpan = 5;
+    cell.textContent = "No preview lines returned.";
+    cell.style.textAlign = "center";
+    cell.style.color = "#6b7280";
+    row.append(cell);
+    dom.importPreviewTable.append(row);
+    return;
+  }
+  lines.forEach((line) => {
+    const row = document.createElement("tr");
+    const cells = [line, "", "", "", ""];
+    cells.forEach((value) => {
+      const cell = document.createElement("td");
+      cell.textContent = value;
+      row.append(cell);
+    });
+    dom.importPreviewTable.append(row);
+  });
+};
+
 const renderCharts = (data, filter) => {
   const assetTotal = data.assets.reduce(
     (sum, asset) =>
@@ -909,16 +1197,17 @@ const renderCharts = (data, filter) => {
     0
   );
   const series = buildMonthSeries(data, filter.year);
+  const recentSeries = getRecentSeries(series, filter);
   renderLineChart(
     dom.cashflowTimeline,
-    series.map((point) => ({
+    recentSeries.map((point) => ({
       label: monthNames[point.month].slice(0, 3),
       value: point.net,
     }))
   );
 
   let cumulative = 0;
-  const netWorthPoints = series.map((point) => {
+  const netWorthPoints = recentSeries.map((point) => {
     cumulative += point.net + point.invested;
     return {
       label: monthNames[point.month].slice(0, 3),
@@ -926,6 +1215,22 @@ const renderCharts = (data, filter) => {
     };
   });
   renderLineChart(dom.netWorthTrend, netWorthPoints);
+};
+
+const getRecentSeries = (series, filter) => {
+  let lastIndex = series.length - 1;
+  if (filter.month && filter.month > 0) {
+    lastIndex = filter.month - 1;
+  } else {
+    const lastWithDataIndex = [...series]
+      .reverse()
+      .findIndex((point) => point.income || point.expenses || point.invested);
+    if (lastWithDataIndex >= 0) {
+      lastIndex = series.length - 1 - lastWithDataIndex;
+    }
+  }
+  const startIndex = Math.max(0, lastIndex - 5);
+  return series.slice(startIndex, lastIndex + 1);
 };
 
 const getInvestmentValue = (entry) => {
@@ -1015,9 +1320,13 @@ const renderLineChart = (container, data) => {
   const innerWidth = width - padding * 2;
   const innerHeight = height - padding * 2;
   const values = data.map((point) => point.value);
-  const min = Math.min(...values, 0);
-  const max = Math.max(...values, 1);
-  const range = max - min || 1;
+  let min = Math.min(...values, 0);
+  let max = Math.max(...values, 1);
+  let range = max - min || 1;
+  const pad = range * 0.15;
+  min -= pad;
+  max += pad;
+  range = max - min || 1;
 
   const points = data.map((point, index) => {
     const x = padding + (innerWidth / (data.length - 1 || 1)) * index;
@@ -1073,16 +1382,35 @@ const renderLineChart = (container, data) => {
   container.append(svg, labels);
 };
 
+const expensePalette = [
+  "#d97757",
+  "#f2b880",
+  "#f59f78",
+  "#f2a65a",
+  "#e3c6a1",
+  "#f6d9b1",
+  "#caa678",
+  "#e8b7a1",
+];
+
+const getExpenseMixLabel = (expense) => {
+  if (expense.category === "Subscriptions") return "Subscriptions";
+  return getExpenseCategory(expense);
+};
+
 const renderMixCharts = (totals) => {
+  renderNetWorthMix(totals);
+
   const expenseTotals = {};
   totals.expenses.forEach((expense) => {
-    const category = getExpenseCategory(expense);
+    const category = getExpenseMixLabel(expense);
     expenseTotals[category] = (expenseTotals[category] || 0) + Number(expense.amount || 0);
   });
   renderPieChart(
     dom.expensePie,
     dom.expenseLegend,
-    Object.entries(expenseTotals).map(([label, value]) => ({ label, value }))
+    Object.entries(expenseTotals).map(([label, value]) => ({ label, value })),
+    expensePalette
   );
 
   const incomeTotals = {};
@@ -1097,7 +1425,19 @@ const renderMixCharts = (totals) => {
   );
 };
 
-const renderPieChart = (pieEl, legendEl, data) => {
+const renderNetWorthMix = (totals) => {
+  const mix = [
+    { label: "Net Cash Flow", value: totals.incomeTotal - totals.expenseTotal },
+    { label: "Investments", value: totals.investmentValueTotal || 0 },
+    { label: "Assets", value: totals.assetTotal || 0 },
+  ]
+    .map((item) => ({ ...item, value: Math.max(0, item.value) }))
+    .filter((item) => item.value > 0);
+
+  renderPieChart(dom.netWorthPie, dom.netWorthLegend, mix);
+};
+
+const renderPieChart = (pieEl, legendEl, data, paletteOverride) => {
   pieEl.innerHTML = "";
   legendEl.innerHTML = "";
 
@@ -1107,7 +1447,7 @@ const renderPieChart = (pieEl, legendEl, data) => {
     return;
   }
 
-  const palette = [
+  const palette = paletteOverride || [
     "#2a9187",
     "#7bdcb5",
     "#b7ede2",
@@ -1177,5 +1517,12 @@ const init = async () => {
     );
   }
 };
+
+document.getElementById("uploadStatementBtn")?.addEventListener("click", () => {
+  console.log("Upload clicked");
+});
+document.getElementById("confirmImportBtn")?.addEventListener("click", () => {
+  console.log("Confirm clicked");
+});
 
 init();
